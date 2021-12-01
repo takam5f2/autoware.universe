@@ -6,6 +6,16 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://autowarefoundation.github.io/autoware.universe/pr-8/common/autoware_utils/</loc>
+         <lastmod>2021-12-01</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://autowarefoundation.github.io/autoware.universe/pr-8/control/shift_decider/</loc>
+         <lastmod>2021-12-01</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://autowarefoundation.github.io/autoware.universe/pr-8/messages/</loc>
          <lastmod>2021-12-01</lastmod>
          <changefreq>daily</changefreq>
