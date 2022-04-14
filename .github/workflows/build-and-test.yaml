@@ -37,7 +37,7 @@ jobs:
           build-depends-repos: build_depends.repos
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           files: lcov/total_coverage.info,coveragepy/.coverage
           fail_ci_if_error: true
