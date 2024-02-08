@@ -1,7 +1,7 @@
 <launch>
-    <node name="kinematic_reader" exec="kinematic_reader" pkg="kinematic_reader" output="screen">
+    <node name="kinematic_reader" exec="kinematic_reader_node" pkg="kinematic_reader" output="screen">
       <!-- remap topic name -->
-      <remap from="~/input/kinematics" to="/localization/kinematic_state"/>
+      <remap from="~/odom" to="/localization/kinematic_state"/>
     </node>
   </launch>
   

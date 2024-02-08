@@ -12,6 +12,12 @@ KinematicReader::KinematicReader(const rclcpp::NodeOptions & options)
 
     auto no_executed = [this](const nav_msgs::msg::Odometry::ConstSharedPtr msg) -> void {
       assert(false);
+      current_kinematics_ = msg;
+      RCLCPP_INFO(this->get_logger(), "Received odometry message");
+      RCLCPP_INFO(
+        this->get_logger(), "Position: x = %f, y = %f, z = %f",
+        current_kinematics_->pose.pose.position.x, current_kinematics_->pose.pose.position.y,
+        current_kinematics_->pose.pose.position.z);
     };
 
     rclcpp::CallbackGroup::SharedPtr cb_group_noexec = this->create_callback_group(
@@ -21,10 +27,10 @@ KinematicReader::KinematicReader(const rclcpp::NodeOptions & options)
 
 
     sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-        "odom", 1, no_executed);
+        "~/odom", 1, no_executed, subscription_options);
 
     timer_ = this->create_wall_timer(
-        500ms, std::bind(&KinematicReader::timer_callback, this));
+        1000ms, std::bind(&KinematicReader::timer_callback, this));
 }
 
 void KinematicReader::timer_callback()
@@ -33,11 +39,24 @@ void KinematicReader::timer_callback()
     nav_msgs::msg::Odometry odom_msg;
     rclcpp::MessageInfo msg_info;
 
+    if (sub_->is_serialized()) {
+        RCLCPP_INFO(this->get_logger(), "Message is serialized");
+    }
+    else {
+        RCLCPP_INFO(this->get_logger(), "Message is not serialized");
+    }
+
     if (sub_->take(odom_msg, msg_info)) {
+        current_kinematics_ = std::make_shared<nav_msgs::msg::Odometry>(odom_msg);
         RCLCPP_INFO(this->get_logger(), "Received odometry message");
+        RCLCPP_INFO(this->get_logger(), "Position: x = %f, y = %f, z = %f",
+            current_kinematics_->pose.pose.position.x,
+            current_kinematics_->pose.pose.position.y,
+            current_kinematics_->pose.pose.position.z);
     }
     else {
         RCLCPP_INFO(this->get_logger(), "No odometry message received");
+        current_kinematics_ = std::make_shared<nav_msgs::msg::Odometry>(odom_msg);
     }
 }
 
