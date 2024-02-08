@@ -19,10 +19,10 @@ using nav_msgs::msg::Odometry;
   {
   public:
     explicit KinematicReader(const rclcpp::NodeOptions & options);
-    void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg);
-
+    void timer_callback();
   private:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_;
+    rclcpp::TimerBase::SharedPtr timer_;
     Odometry::ConstSharedPtr current_kinematics_;
 
   };
