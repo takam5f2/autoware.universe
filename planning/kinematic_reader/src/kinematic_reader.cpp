@@ -12,12 +12,6 @@ KinematicReader::KinematicReader(const rclcpp::NodeOptions & options)
     // but do not execute the callback
     auto no_executed = [this](const nav_msgs::msg::Odometry::ConstSharedPtr msg) -> void {
       assert(false);
-      current_kinematics_ = msg;
-      RCLCPP_INFO(this->get_logger(), "Received odometry message");
-      RCLCPP_INFO(
-        this->get_logger(), "Position: x = %f, y = %f, z = %f",
-        current_kinematics_->pose.pose.position.x, current_kinematics_->pose.pose.position.y,
-        current_kinematics_->pose.pose.position.z);
     };
 
     rclcpp::CallbackGroup::SharedPtr cb_group_noexec = this->create_callback_group(
@@ -39,7 +33,7 @@ KinematicReader::KinematicReader(const rclcpp::NodeOptions & options)
 void KinematicReader::timer_callback()
 {
     // Do something with the data
-    nav_msgs::msg::Odometry odom_msg;
+    // nav_msgs::msg::Odometry odom_msg;
     rclcpp::MessageInfo msg_info;
 
     if (sub_->is_serialized()) {
@@ -49,15 +43,15 @@ void KinematicReader::timer_callback()
         RCLCPP_INFO(this->get_logger(), "Message is not serialized");
     }
 
-    if (sub_->take(odom_msg, msg_info)) {
-        current_kinematics_ = std::make_shared<nav_msgs::msg::Odometry>(odom_msg);
+    if (sub_->take(current_kinematics_, msg_info)) {
+        // current_kinematics_ = std::make_shared<nav_msgs::msg::Odometry>(odom_msg);
         RCLCPP_INFO(this->get_logger(), "Received odometry message");
-        RCLCPP_INFO(this->get_logger(), "Frame ID: %s", current_kinematics_->header.frame_id.c_str());
-        RCLCPP_INFO(this->get_logger(), "sec: %d", current_kinematics_->header.stamp.sec);
+        RCLCPP_INFO(this->get_logger(), "Frame ID: %s", current_kinematics_.header.frame_id.c_str());
+        RCLCPP_INFO(this->get_logger(), "sec: %d", current_kinematics_.header.stamp.sec);
         RCLCPP_INFO(this->get_logger(), "Position: x = %f, y = %f, z = %f",
-            current_kinematics_->pose.pose.position.x,
-            current_kinematics_->pose.pose.position.y,
-            current_kinematics_->pose.pose.position.z);
+            current_kinematics_.pose.pose.position.x,
+            current_kinematics_.pose.pose.position.y,
+            current_kinematics_.pose.pose.position.z);
         if (msg_info.get_rmw_message_info().from_intra_process) {
             RCLCPP_INFO(this->get_logger(), "Intra process");
         }

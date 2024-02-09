@@ -23,7 +23,7 @@ using nav_msgs::msg::Odometry;
   private:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_;
     rclcpp::TimerBase::SharedPtr timer_;
-    Odometry::ConstSharedPtr current_kinematics_;
+    Odometry current_kinematics_;
 
   };
 } // namespace kinematic_reader
