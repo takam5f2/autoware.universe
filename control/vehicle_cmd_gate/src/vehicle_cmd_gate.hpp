@@ -216,6 +216,9 @@ private:
   void publishEmergencyStopControlCommands();
   void publishStatus();
 
+  // Wait set
+  rclcpp::WaitSet wait_set_;
+
   // Diagnostics Updater
   diagnostic_updater::Updater updater_;
 
