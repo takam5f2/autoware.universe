@@ -480,11 +480,15 @@ void VehicleCmdGate::onTimer()
   rclcpp::MessageInfo msg_info;
   TurnIndicatorsCommand::SharedPtr turn_indicator_msg = std::make_shared<TurnIndicatorsCommand>();
   HazardLightsCommand::SharedPtr hazard_light_msg = std::make_shared<HazardLightsCommand>();
+  GearCommand::SharedPtr gear_msg = std::make_shared<GearCommand>();
 
   if (use_emergency_handling_ && is_system_emergency_) {
     if (emergency_hazard_light_cmd_sub_->take(*hazard_light_msg, msg_info)) {
       emergency_commands_.hazard_light = *hazard_light_msg;
     }
+    if (emergency_gear_cmd_sub_->take(*gear_msg, msg_info)) {
+      emergency_commands_.gear = *gear_msg;
+    }    
     turn_indicator = emergency_commands_.turn_indicator;
     hazard_light = emergency_commands_.hazard_light;
     gear = emergency_commands_.gear;
@@ -496,6 +500,9 @@ void VehicleCmdGate::onTimer()
       if (auto_hazard_light_cmd_sub_->take(*hazard_light_msg, msg_info)) {
         auto_commands_.hazard_light = *hazard_light_msg;
       }
+      if (auto_gear_cmd_sub_->take(*gear_msg, msg_info)) {
+        auto_commands_.gear = *gear_msg;
+      }      
       turn_indicator = auto_commands_.turn_indicator;
       hazard_light = auto_commands_.hazard_light;
       gear = auto_commands_.gear;
@@ -512,6 +519,9 @@ void VehicleCmdGate::onTimer()
       if (remote_hazard_light_cmd_sub_->take(*hazard_light_msg, msg_info)) {
         remote_commands_.hazard_light = *hazard_light_msg;
       }
+      if (remote_gear_cmd_sub_->take(*gear_msg, msg_info)) {
+        remote_commands_.gear = *gear_msg;
+      }      
       turn_indicator = remote_commands_.turn_indicator;
       hazard_light = remote_commands_.hazard_light;
       gear = remote_commands_.gear;
