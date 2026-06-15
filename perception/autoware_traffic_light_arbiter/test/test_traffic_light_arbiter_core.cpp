@@ -418,8 +418,8 @@ TEST(TrafficLightArbiterCoreSignalMatching, externalOnlySingleSourceYieldsUnknow
   EXPECT_EQ(observed_color(result.output, map_ids::vehicle_a), UNKNOWN);
 }
 
-// Off-map id is dropped from the output and recorded in off_map_signal_ids.
-TEST(TrafficLightArbiterCoreSignalMatching, offMapIdIsDroppedAndReported)
+// Off-map id is dropped from the output.
+TEST(TrafficLightArbiterCoreSignalMatching, offMapIdIsDropped)
 {
   auto arbiter = make_arbiter(CONFIDENCE, /*enable_signal_matching=*/true);
 
@@ -429,7 +429,6 @@ TEST(TrafficLightArbiterCoreSignalMatching, offMapIdIsDroppedAndReported)
   const auto result = arbiter.arbitrate();
 
   EXPECT_EQ(find_group(result.output, map_ids::off_map_probe), nullptr);
-  EXPECT_EQ(result.off_map_signal_ids, std::vector<lanelet::Id>{map_ids::off_map_probe});
 }
 
 // ---------------------------------------------------------------------------
@@ -560,8 +559,8 @@ TEST(TrafficLightArbiterCoreConfidencePriority, perceptionOnlyPassesThrough)
 
 // Off-map id is dropped before reaching priority selection too. Pins the
 // off-map guard as mode-independent (Signal Matching side has its own
-// counterpart in offMapIdIsDroppedAndReported).
-TEST(TrafficLightArbiterCoreConfidencePriority, offMapIdIsDroppedAndReported)
+// counterpart in offMapIdIsDropped).
+TEST(TrafficLightArbiterCoreConfidencePriority, offMapIdIsDropped)
 {
   auto arbiter = make_arbiter(CONFIDENCE, /*enable_signal_matching=*/false);
 
@@ -571,7 +570,6 @@ TEST(TrafficLightArbiterCoreConfidencePriority, offMapIdIsDroppedAndReported)
   const auto result = arbiter.arbitrate();
 
   EXPECT_EQ(find_group(result.output, map_ids::off_map_probe), nullptr);
-  EXPECT_EQ(result.off_map_signal_ids, std::vector<lanelet::Id>{map_ids::off_map_probe});
 }
 
 // Successive external publishes carrying different ids accumulate in the
@@ -904,65 +902,6 @@ TEST(TrafficLightArbiterCorePerceptionStaleness, stalePerceptionPredictionsAreSk
   const auto result = arbiter.arbitrate();
 
   EXPECT_EQ(observed_prediction_source(result.output, map_ids::vehicle_a, 0), V2I);
-}
-
-// ---------------------------------------------------------------------------
-// latest_input_time: the Node uses this to decide whether its published
-// output is behind some input that has arrived but not yet driven a
-// publish cycle. The non-trivial piece is selecting the most recent
-// stamp across stored sources, so we pin all directions of that
-// selection.
-// ---------------------------------------------------------------------------
-
-TEST(TrafficLightArbiterCoreLatestInputTime, takesNewerOfPerceptionAndExternal)
-{
-  auto arbiter = make_arbiter(CONFIDENCE, /*enable_signal_matching=*/false);
-
-  const auto t_external_newer = base_time + rclcpp::Duration::from_seconds(0.5);
-
-  arbiter.ingest_perception(
-    make_signal(base_time, map_ids::vehicle_a, {make_element(RED, CIRCLE)}));
-  arbiter.ingest_external(
-    make_signal(t_external_newer, map_ids::vehicle_a, {make_element(RED, CIRCLE)}),
-    t_external_newer);
-
-  const auto result = arbiter.arbitrate();
-
-  EXPECT_EQ(result.latest_input_time, t_external_newer);
-}
-
-// Symmetric counterpart: when perception is the newer source, its stamp
-// wins even though external is also stored.
-TEST(TrafficLightArbiterCoreLatestInputTime, perceptionWinsWhenNewer)
-{
-  auto arbiter = make_arbiter(CONFIDENCE, /*enable_signal_matching=*/false);
-
-  const auto t_perception_newer = base_time + rclcpp::Duration::from_seconds(0.3);
-
-  arbiter.ingest_external(
-    make_signal(base_time, map_ids::vehicle_a, {make_element(RED, CIRCLE)}), base_time);
-  arbiter.ingest_perception(
-    make_signal(t_perception_newer, map_ids::vehicle_a, {make_element(RED, CIRCLE)}));
-
-  const auto result = arbiter.arbitrate();
-
-  EXPECT_EQ(result.latest_input_time, t_perception_newer);
-}
-
-// External is silent: with no external stamps to compare against,
-// latest_input_time falls back to the perception stamp.
-TEST(TrafficLightArbiterCoreLatestInputTime, perceptionStampWhenExternalIsSilent)
-{
-  auto arbiter = make_arbiter(CONFIDENCE, /*enable_signal_matching=*/false);
-
-  const auto t_perception = base_time + rclcpp::Duration::from_seconds(0.5);
-
-  arbiter.ingest_perception(
-    make_signal(t_perception, map_ids::vehicle_a, {make_element(RED, CIRCLE)}));
-
-  const auto result = arbiter.arbitrate();
-
-  EXPECT_EQ(result.latest_input_time, t_perception);
 }
 
 // ---------------------------------------------------------------------------

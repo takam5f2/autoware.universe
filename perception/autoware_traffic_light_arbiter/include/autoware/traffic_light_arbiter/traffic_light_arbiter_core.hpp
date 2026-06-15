@@ -77,13 +77,15 @@ public:
 
   // Result of one arbitration cycle. `output` holds the arbitrated signals by
   // value; std::nullopt means no map has arrived yet, so the Node skips the
-  // publish. The Core leaves output unstamped — the Node owns stamp inheritance
-  // and uses latest_input_time for staleness logging.
+  // publish. The Core leaves output unstamped — the Node owns stamp inheritance.
+  //
+  // Once the WARN_THROTTLE logs were dropped, the diagnostic-only fields this
+  // struct used to carry (off_map_signal_ids, latest_input_time) had no
+  // consumer left, so they are gone. What remains is a single-field struct that
+  // could collapse further to `std::optional<TrafficSignalArray>`.
   struct ArbitrationResult
   {
     std::optional<TrafficSignalArray> output;  // stamp left default; Node fills it in.
-    std::vector<lanelet::Id> off_map_signal_ids;
-    rclcpp::Time latest_input_time{0, 0, RCL_ROS_TIME};
   };
   ArbitrationResult arbitrate() const;
 

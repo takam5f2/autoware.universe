@@ -84,8 +84,6 @@ void TrafficLightArbiter::on_external_msg(
 {
   const auto result = core_->ingest_external(*msg, this->now());
   if (!result.accepted) {
-    RCLCPP_WARN_THROTTLE(
-      get_logger(), *get_clock(), 5000, "Received outdated external traffic signal messages");
     return;
   }
   log_expired_external_signals(result.expired);
@@ -107,15 +105,7 @@ void TrafficLightArbiter::arbitrate_and_publish(const builtin_interfaces::msg::T
   auto result = core_->arbitrate();
 
   if (!result.output) {
-    RCLCPP_WARN_THROTTLE(
-      get_logger(), *get_clock(), 5000, "Received traffic signal messages before a map");
     return;
-  }
-
-  for (const auto & id : result.off_map_signal_ids) {
-    RCLCPP_WARN_THROTTLE(
-      get_logger(), *get_clock(), 5000,
-      "Received a traffic signal not present in the current map (%lu)", id);
   }
 
   // Stamp inheritance is the Node's I/O contract with downstream consumers:
@@ -128,11 +118,6 @@ void TrafficLightArbiter::arbitrate_and_publish(const builtin_interfaces::msg::T
   // regular heap, so moving that buffer into a loaned message would leave the
   // payload outside the segment subscribers map. The copy keeps it in shmem.
   pub_->publish(*result.output);
-
-  if (rclcpp::Time(stamp) < result.latest_input_time) {
-    RCLCPP_WARN_THROTTLE(
-      get_logger(), *get_clock(), 5000, "Published traffic signal messages are not latest");
-  }
 }
 }  // namespace autoware::traffic_light
 

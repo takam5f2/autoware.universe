@@ -56,16 +56,14 @@ void append_predictions(
 
 // Routes one signal's elements into `signals_map` under its regulatory-element
 // id, tagging each with `priority`. Ids absent from `map_regulatory_elements`
-// are recorded in `off_map_signal_ids` and dropped.
+// are dropped.
 void route_signal(
   const TrafficLightGroup & signal, bool priority,
   const std::unordered_set<lanelet::Id> & map_regulatory_elements,
-  std::unordered_map<lanelet::Id, std::vector<ElementAndPriority>> & signals_map,
-  std::vector<lanelet::Id> & off_map_signal_ids)
+  std::unordered_map<lanelet::Id, std::vector<ElementAndPriority>> & signals_map)
 {
   const auto id = signal.traffic_light_group_id;
   if (!map_regulatory_elements.count(id)) {
-    off_map_signal_ids.push_back(id);
     return;
   }
 
@@ -271,21 +269,19 @@ TrafficLightArbiterCore::ArbitrationResult TrafficLightArbiterCore::arbitrate() 
     const auto validated_signals =
       signal_match_validator_->validate_signals(effective_perception, valid_external_signals);
     for (const auto & signal : validated_signals.traffic_light_groups) {
-      route_signal(
-        signal, false, map_regulatory_elements, regulatory_element_signals_map,
-        result.off_map_signal_ids);
+      route_signal(signal, false, map_regulatory_elements, regulatory_element_signals_map);
     }
   } else {
     for (const auto & signal : effective_perception.traffic_light_groups) {
       route_signal(
         signal, source_priority_ == SourcePriority::PERCEPTION, map_regulatory_elements,
-        regulatory_element_signals_map, result.off_map_signal_ids);
+        regulatory_element_signals_map);
     }
 
     for (const auto & signal : valid_external_signals.traffic_light_groups) {
       route_signal(
         signal, source_priority_ == SourcePriority::EXTERNAL, map_regulatory_elements,
-        regulatory_element_signals_map, result.off_map_signal_ids);
+        regulatory_element_signals_map);
     }
   }
 
@@ -298,13 +294,6 @@ TrafficLightArbiterCore::ArbitrationResult TrafficLightArbiterCore::arbitrate() 
     signal_msg.predictions = predictions_map[regulatory_element_id];
     output_signals_msg.traffic_light_groups.emplace_back(signal_msg);
   }
-
-  // Latest input stamp across stored sources. The Node compares this against
-  // its trigger stamp to decide whether the published output is behind some
-  // input that has arrived but hasn't yet driven a publish cycle.
-  result.latest_input_time = (has_externals && max_external_stamp > perception_stamp)
-                               ? max_external_stamp
-                               : perception_stamp;
 
   result.output = std::move(output_signals_msg);
   return result;
